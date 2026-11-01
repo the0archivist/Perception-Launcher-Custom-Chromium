@@ -17,25 +17,17 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'npm'
 
     - name: Install Dependencies
       run: npm install
 
-    - name: Apply Perception Engine Patches
-      run: |
-        echo "Applying high-performance patches to Electron environment..."
-        # This is where we would eventually add scripts to modify the node_modules/electron source
-        # or download custom-compiled binaries.
-
     - name: Build Perception Launcher
       run: npm run build
       env:
-        NODE_ENV: production
-        ELECTRON_OPTIMIZE: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: Perception-Launcher-Win64
+        name: Perception-Launcher-Windows
         path: dist/*.exe

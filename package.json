@@ -1,18 +1,43 @@
 {
   "name": "perception-launcher",
   "version": "1.0.0",
-  "description": "",
+  "description": "High-Performance Bloxd.io Client",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-forge make",
-    "package": "electron-forge package",
+    "build": "electron-builder build --win --publish never",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "type": "commonjs",
+  "keywords": [
+    "bloxd",
+    "electron",
+    "performance"
+  ],
+  "author": "the0Archivist",
+  "license": "MIT",
   "devDependencies": {
-    "@electron-forge/cli": "^8.0.1",
-    "electron": "^45.1.0"
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.perception.launcher",
+    "productName": "Perception Launcher",
+    "win": {
+      "target": "nsis",
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/*",
+      "!.github/*",
+      "!.git/*"
+    ]
   }
 }
