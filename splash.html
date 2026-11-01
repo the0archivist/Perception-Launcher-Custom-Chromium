@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-app-region: drag;
+        }
+
+        .container {
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 200;
+            letter-spacing: 15px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .loader {
+            width: 200px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress {
+            position: absolute;
+            height: 100%;
+            width: 0%;
+            background: #fff;
+            animation: progress 4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-size: 0.6rem;
+            font-weight: 300;
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes progress {
+            0% { width: 0%; left: 0; }
+            50% { width: 70%; left: 0; }
+            100% { width: 100%; left: 0; }
+        }
+
+        .status::after {
+            content: "Loading";
+            animation: statusText 4s step-end forwards;
+        }
+
+        @keyframes statusText {
+            0% { content: "Loading"; }
+            35% { content: "Connecting"; }
+            70% { content: "Almost Ready"; }
+            100% { content: "Ready"; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Perception</div>
+        <div class="loader">
+            <div class="progress"></div>
+        </div>
+        <div class="status"></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #fff;
+            user-select: none;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+        }
+
+        .hud-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Keystrokes Style */
+        .keystrokes {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            display: grid;
+            grid-template-areas: 
+                ". w ."
+                "a s d"
+                "space space space";
+            gap: 8px;
+        }
+
+        .key {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.5); /* Thicker and more opaque */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 500; /* Bolder font */
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.05s ease-out;
+            background: rgba(0, 0, 0, 0.5); /* Darker background */
+            backdrop-filter: blur(2px); /* Slight blur for separation */
+        }
+
+        .key.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            text-shadow: none;
+        }
+
+        .key-w { grid-area: w; }
+        .key-a { grid-area: a; }
+        .key-s { grid-area: s; }
+        .key-d { grid-area: d; }
+        .key-space { 
+            grid-area: space; 
+            width: 100%; 
+            height: 30px; 
+            margin-top: 4px;
+        }
+
+        /* Stats Style */
+        .stats {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            text-align: right;
+        }
+
+        .stat-item {
+            margin-bottom: 25px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 3px;
+            color: rgba(255, 255, 255, 0.8); /* Much more visible */
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        .stat-line {
+            width: 120px;
+            height: 2px; /* Thicker line */
+            background: rgba(255, 255, 255, 0.3);
+            margin-left: auto;
+            margin-top: 5px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .stat-line-progress {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            background: #fff;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .ram-counter {
+            position: absolute;
+            top: 100px;
+            left: 40px;
+        }
+
+        /* Crosshair */
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+        }
+
+        .cps-container {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .fps-counter {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+        }
+
+        /* Mod Menu */
+        #mod-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 500px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        #mod-menu.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .menu-header {
+            font-size: 1.5rem;
+            font-weight: 200;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .menu-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 5px;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            cursor: pointer;
+            padding: 8px 0;
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:hover {
+            color: #fff;
+            padding-left: 5px;
+        }
+
+        .item-label {
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .toggle {
+            width: 30px;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .toggle::after {
+            content: "";
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.4);
+            left: 0;
+            transition: all 0.3s ease;
+        }
+
+        .menu-item.enabled .toggle {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .menu-item.enabled .toggle::after {
+            background: #fff;
+            left: 16px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .menu-item.enabled .item-label {
+            color: #fff;
+        }
+
+        .menu-footer {
+            margin-top: 30px;
+            font-size: 0.5rem;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.2);
+            text-align: center;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="hud-container">
+        <!-- Mod Menu -->
+        <div id="mod-menu">
+            <div class="menu-header">Perception</div>
+            
+            <div class="menu-section">
+                <div class="section-title">Rendering</div>
+                <div class="menu-item enabled" onclick="toggleMod(this)">
+                    <div class="item-label">Occlusion Culling</div>
+                    <div class="toggle"></div>
+                </div>
+                <div class="menu-item enabled" onclick="toggleMod(this)">
+                    <div class="item-label">DirectComposition</div>
+                    <div class="toggle"></div>
+                </div>
+                <div class="menu-item enabled" onclick="toggleMod(this)">
+                    <div class="item-label">VRAM Spoofing</div>
+                    <div class="toggle"></div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="section-title">Networking</div>
+                <div class="menu-item enabled" onclick="toggleMod(this)">
+                    <div class="item-label">TCP Fast Open</div>
+                    <div class="toggle"></div>
+                </div>
+                <div class="menu-item enabled" onclick="toggleMod(this)">
+                    <div class="item-label">Async DNS</div>
+                    <div class="toggle"></div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="section-title">Interface</div>
+                <div class="menu-item enabled" onclick="toggleMod(this)">
+                    <div class="item-label">Keystrokes HUD</div>
+                    <div class="toggle"></div>
+                </div>
+                <div class="menu-item enabled" onclick="toggleMod(this)">
+                    <div class="item-label">Performance Stats</div>
+                    <div class="toggle"></div>
+                </div>
+            </div>
+
+            <div class="menu-footer">Press Right Shift to Close</div>
+        </div>
+        <!-- Precision FPS -->
+        <div class="fps-counter">
+            <div class="stat-label">System Target</div>
+            <div class="stat-value" id="fps-val">60</div>
+            <div class="stat-line"><div class="stat-line-progress" style="transform: translateX(0);"></div></div>
+        </div>
+
+        <!-- Engine RAM Monitor -->
+        <div class="ram-counter">
+            <div class="stat-label">Engine RAM</div>
+            <div class="stat-value"><span id="ram-val">0</span><span style="font-size: 0.6rem; margin-left: 5px;">MB</span></div>
+            <div class="stat-line"><div class="stat-line-progress" id="ram-bar"></div></div>
+        </div>
+
+        <!-- Crosshair -->
+        <div class="crosshair"></div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">Latency</div>
+                <div class="stat-value"><span id="ping-val">0</span><span style="font-size: 0.6rem; margin-left: 5px;">MS</span></div>
+                <div class="stat-line"><div class="stat-line-progress" id="ping-bar"></div></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Combat CPS</div>
+                <div class="cps-container">
+                    <div>
+                        <div style="font-size: 0.5rem; color: rgba(255,255,255,0.3);">L</div>
+                        <div class="stat-value" id="lcps-val">0</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.5rem; color: rgba(255,255,255,0.3);">R</div>
+                        <div class="stat-value" id="rcps-val">0</div>
+                    </div>
+                </div>
+                <div class="stat-line"><div class="stat-line-progress" id="cps-bar"></div></div>
+            </div>
+        </div>
+
+        <!-- Keystrokes -->
+        <div class="keystrokes">
+            <div class="key key-w" id="key-w">W</div>
+            <div class="key key-a" id="key-a">A</div>
+            <div class="key key-s" id="key-s">S</div>
+            <div class="key key-d" id="key-d">D</div>
+            <div class="key key-space" id="key-space"></div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        // Mod Menu Logic
+        const modMenu = document.getElementById('mod-menu');
+        let menuVisible = false;
+
+        ipcRenderer.on('toggle-menu', () => {
+            console.log("Perception: Toggle Menu Event Received");
+            menuVisible = !menuVisible;
+            if (menuVisible) {
+                modMenu.classList.add('visible');
+            } else {
+                modMenu.classList.remove('visible');
+            }
+        });
+
+        // Handle closing the menu when the overlay is focused
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'ShiftRight') {
+                ipcRenderer.send('close-menu');
+            }
+        });
+
+        window.toggleMod = (el) => {
+            el.classList.toggle('enabled');
+            const label = el.querySelector('.item-label').innerText;
+            const enabled = el.classList.contains('enabled');
+            
+            // Handle specific mod toggles
+            if (label === 'Keystrokes HUD') {
+                document.querySelector('.keystrokes').style.opacity = enabled ? '1' : '0';
+            } else if (label === 'Performance Stats') {
+                document.querySelector('.stats').style.opacity = enabled ? '1' : '0';
+                document.querySelector('.fps-counter').style.opacity = enabled ? '1' : '0';
+                document.querySelector('.ram-counter').style.opacity = enabled ? '1' : '0';
+            }
+            
+            console.log(`Perception: Mod Toggled - ${label} is now ${enabled}`);
+        };
+
+        // Input Handling - forward keys to the HUD without touching the game
+        const keys = {
+            'KeyW': document.getElementById('key-w'),
+            'KeyA': document.getElementById('key-a'),
+            'KeyS': document.getElementById('key-s'),
+            'KeyD': document.getElementById('key-d'),
+            'Space': document.getElementById('key-space')
+        };
+
+        ipcRenderer.on('key-event', (event, { key, code, type }) => {
+            const el = keys[code];
+            if (el) {
+                if (type === 'down') el.classList.add('active');
+                else el.classList.remove('active');
+            }
+        });
+
+        // CPS Tracking logic (PvP stats)
+        let leftClicks = [];
+        let rightClicks = [];
+
+        ipcRenderer.on('click-event', (event, { button }) => {
+            const now = Date.now();
+            if (button === 0) leftClicks.push(now);
+            if (button === 2) rightClicks.push(now);
+        });
+
+        setInterval(() => {
+            const now = Date.now();
+            leftClicks = leftClicks.filter(t => now - t < 1000);
+            rightClicks = rightClicks.filter(t => now - t < 1000);
+            
+            document.getElementById('lcps-val').innerText = leftClicks.length;
+            document.getElementById('rcps-val').innerText = rightClicks.length;
+            
+            const totalCps = leftClicks.length + rightClicks.length;
+            document.getElementById('cps-bar').style.transform = `translateX(${Math.min(0, -100 + (totalCps * 5))}%)`;
+        }, 100);
+
+        // Latency sync with the main process
+        ipcRenderer.on('ping-update', (event, ping) => {
+            document.getElementById('ping-val').innerText = ping;
+            const pingPercent = Math.max(0, Math.min(100, (ping / 200) * 100));
+            document.getElementById('ping-bar').style.transform = `translateX(${Math.min(0, -100 + pingPercent)}%)`;
+        });
+
+        // Target FPS sync
+        ipcRenderer.on('fps-update', (event, fps) => {
+            document.getElementById('fps-val').innerText = fps;
+        });
+
+        // RAM Usage sync
+        ipcRenderer.on('ram-update', (event, { used, percent }) => {
+            document.getElementById('ram-val').innerText = used;
+            document.getElementById('ram-bar').style.transform = `translateX(${Math.min(0, -100 + percent)}%)`;
+        });
+
+        // Initialize HUD state based on menu items
+        document.querySelectorAll('.menu-item').forEach(item => {
+            const label = item.querySelector('.item-label').innerText;
+            const enabled = item.classList.contains('enabled');
+            if (label === 'Keystrokes HUD') {
+                const ks = document.querySelector('.keystrokes');
+                if (ks) ks.style.opacity = enabled ? '1' : '0';
+            } else if (label === 'Performance Stats') {
+                const stats = document.querySelector('.stats');
+                const fps = document.querySelector('.fps-counter');
+                const ram = document.querySelector('.ram-counter');
+                if (stats) stats.style.opacity = enabled ? '1' : '0';
+                if (fps) fps.style.opacity = enabled ? '1' : '0';
+                if (ram) ram.style.opacity = enabled ? '1' : '0';
+            }
+        });
+    </script>
+</body>
+</html>
