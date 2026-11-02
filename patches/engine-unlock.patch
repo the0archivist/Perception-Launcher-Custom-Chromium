@@ -1,0 +1,5 @@
+--- a/v8/src/flags/flag-definitions.h
++++ b/v8/src/flags/flag-definitions.h
+@@ -452,1 +452,1 @@
+-DEFINE_INT(max_semi_space_size, 0, "max size of a semi-space (in MBytes), limit to 512MB")
++DEFINE_INT(max_semi_space_size, 4096, "max size of a semi-space (in MBytes), unlocked for Perception Engine")

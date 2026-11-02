@@ -21,6 +21,9 @@ jobs:
     - name: Install Dependencies
       run: npm install
 
+    - name: Apply Perception Engine Patches
+      run: node scripts/apply-patches.js
+
     - name: Build Perception Launcher
       run: npm run build
       env:
